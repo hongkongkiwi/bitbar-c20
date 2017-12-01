@@ -109,7 +109,7 @@ net_asset_value = float(result['nav_per_token']) + btg_nav
 usd_value = net_asset_value * number_of_c20
 
 # menu bar icon
-print '| templateImage={}'.format(symbol_image_map['C20'])
+print '${:.4f}| templateImage={}'.format(net_asset_value, symbol_image_map['C20'])
 print '---'
 
 # print nav, value of your coins, and total fund value

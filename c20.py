@@ -31,6 +31,7 @@ top_25_result = json.loads(urlopen('https://api.coinmarketcap.com/v1/ticker/?lim
 crypto_global_result = json.loads(urlopen('https://api.coinmarketcap.com/v1/global/').read())
 fiat_result = json.loads(urlopen('https://api.fixer.io/latest?symbols=AUD&base=USD').read())
 eth_result = json.loads(urlopen('https://api.coinmarketcap.com/v1/ticker/ethereum/?convert=USD').read())
+btc_result = json.loads(urlopen('https://api.coinmarketcap.com/v1/ticker/bitcoin/?convert=USD').read())
 
 # parse out price and put here
 symbol_price = {
@@ -107,6 +108,7 @@ symbol_image_map = {
 net_asset_value = float(status_result['nav_per_token'])
 usd_value = net_asset_value * number_of_c20
 net_asset_value_eth = net_asset_value / float(eth_result[0]['price_usd'])
+net_asset_value_btc = net_asset_value / float(btc_result[0]['price_usd'])
 
 # menu bar icon
 print '| templateImage={}'.format(symbol_image_map['C20'])
@@ -117,7 +119,8 @@ fiat_value = fiat_result['rates']['AUD'] * usd_value
 fiat_profit = fiat_value - fiat_spent_on_crypto
 gain = (fiat_value - fiat_spent_on_crypto) / fiat_spent_on_crypto * 100
 print 'NAV:\t\t${:.4f} | color=#000'.format(net_asset_value)
-print 'NAV:\t\t{:} ETH | color=#000'.format(net_asset_value_eth)
+print 'NAV:\t\t{:,.18f} ETH | color=#000'.format(net_asset_value_eth)
+print 'NAV:\t\t{:,.8f} BTC | color=#000'.format(net_asset_value_btc)
 print 'Holdings:\t${:,} | href=https://crypto20.com/users/'.format(int(usd_value))
 print 'Holdings:\t${:,} AUD | href=https://crypto20.com/users/'.format(int(fiat_value))
 print 'Profit:\t\t${:,} AUD | href=https://crypto20.com/users/'.format(int(fiat_profit))

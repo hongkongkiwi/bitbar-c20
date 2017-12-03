@@ -281,6 +281,20 @@ default_config = {
                 'number_of_c20': 1,
                 'show_coin_headers': 'yes',
                 'show_dashboards': 'yes',
+                'show_configuration': 'yes',
+                'show_top_icon_color': 'yes',
+                'show_nav_usd': 'yes',
+                'show_nav_btc': 'yes',
+                'show_nav_eth': 'yes',
+                'show_holdings_usd': 'yes',
+                'show_holdings_fiat': 'yes',
+                'show_profit': 'yes',
+                'show_gain': 'yes',
+                'show_fund': 'yes',
+                'show_fund_breakdown': 'yes',
+                'show_c20_quantity': 'yes',
+                'show_market_cap': 'yes',
+                'additional_btg': 0,
                 'fiat_currency': 'AUD',
                 'fiat_spent_on_crypto': 1,
                 'c20_status_url': 'https://crypto20.com/status',
@@ -409,57 +423,71 @@ print '---'
 fiat_value = fiat_result['rates'][config['fiat_currency']] * usd_value
 fiat_profit = fiat_value - fiat_spent_on_crypto
 gain = (fiat_value - fiat_spent_on_crypto) / fiat_spent_on_crypto * 100
-print 'NAV:\t\t${:.4f} | color=#000'.format(net_asset_value)
-print 'NAV (BTC):\t{:,.8f} | color=#000'.format(net_asset_value_btc)
-print 'NAV (ETH):\t{:,.18f} | color=#000'.format(net_asset_value_eth)
-print 'Holdings:\t${:,} | href=https://crypto20.com/users/'.format(int(usd_value))
-print 'Holdings:\t${:,} {} | href=https://crypto20.com/users/'.format(int(fiat_value),str(config['fiat_currency']))
-print 'Profit:\t\t${:,} {} | href=https://crypto20.com/users/'.format(int(fiat_profit),str(config['fiat_currency']))
-print 'Gain:\t\t{:,.3f}% | href=https://percentagecalculator.net/'.format(gain)
-print 'Fund:\t\t${:,} | href=https://crypto20.com/portal/insights/'.format(int(status_result['usd_value']))
+if config['show_nav_usd']:
+    print 'NAV:\t\t${:.4f} | color=#000'.format(net_asset_value)
+if config['show_nav_btc']:
+    print 'NAV (BTC):\t{:,.8f} | color=#000'.format(net_asset_value_btc)
+if config['show_nav_eth']:
+    print 'NAV (ETH):\t{:,.18f} | color=#000'.format(net_asset_value_eth)
+if config['show_holdings_usd']:
+    print 'Holdings:\t${:,} | href=https://crypto20.com/users/'.format(int(usd_value))
+if config['show_holdings_fiat']:
+    print 'Holdings:\t${:,} {} | href=https://crypto20.com/users/'.format(int(fiat_value),str(config['fiat_currency']))
+if config['show_profit']:
+    print 'Profit:\t\t${:,} {} | href=https://crypto20.com/users/'.format(int(fiat_profit),str(config['fiat_currency']))
+if config['show_gain']:
+    print 'Gain:\t\t{:,.3f}% | href=https://percentagecalculator.net/'.format(gain)
+if config['show_fund']:
+    print 'Fund:\t\t${:,} | href=https://crypto20.com/portal/insights/'.format(int(status_result['usd_value']))
 
-# print number of c20 you have
-print 'C20: \t{:,.4f} | href=https://crypto20.com/users/ image={}'.format(number_of_c20, symbol_image_map['C20'])
+if config['show_c20_quantity']:
+    # print number of c20 you have
+    print 'C20: \t{:,.4f} | href=https://crypto20.com/users/ image={}'.format(number_of_c20, symbol_image_map['C20'])
 
-# print total crypto market cap
-print 'Market Cap:\t${:,} | href=https://livecoinwatch.com'.format(int(crypto_global_result['total_market_cap_usd']))
+if config['show_market_cap']:
+    # print total crypto market cap
+    print 'Market Cap:\t${:,} | href=https://livecoinwatch.com'.format(int(crypto_global_result['total_market_cap_usd']))
 
-# separator bitbar recognizes and puts everything under it into a menu
-print '---'
+if config['show_fund_breakdown']:
+    # separator bitbar recognizes and puts everything under it into a menu
+    print '---'
+    if config['show_coin_headers']:
+        print "Name\t\t%\t\tPrice\t\tAmount"
 
-# print holdings
-holdings = status_result['holdings'];
-for holding in holdings:
-    crypto_name = holding['name']
-    crypto_value = float(holding['value'])
-    crypto_percentage = crypto_value / float(status_result['usd_value']) * 100
-    c20_value = holding['value']
-    crypto_path = symbol_path_map[crypto_name]
-    crypto_img = symbol_image_map[crypto_name]
-    crypto_price = float(symbol_price[crypto_path])
+    # print holdings
+    holdings = status_result['holdings'];
+    for holding in holdings:
+        crypto_name = holding['name']
+        crypto_value = float(holding['value'])
+        crypto_percentage = crypto_value / float(status_result['usd_value']) * 100
+        c20_value = holding['value']
+        crypto_path = symbol_path_map[crypto_name]
+        crypto_img = symbol_image_map[crypto_name]
+        crypto_price = float(symbol_price[crypto_path])
 
-    print '{:s} \t{:.2f}%\t${:,}\t${:,.2f} | href=https://livecoinwatch.com/coins/{:s} image={}'.format(
-        crypto_name,
-        crypto_percentage,
-        c20_value,
-        crypto_price,
-        crypto_name,
-        crypto_img)
+        print '{:s} \t{:.2f}%\t${:,}\t${:,.2f} | href=https://livecoinwatch.com/coins/{:s} image={}'.format(
+            crypto_name,
+            crypto_percentage,
+            c20_value,
+            crypto_price,
+            crypto_name,
+            crypto_img)
 
 if config['show_dashboards']:
     print "---"
     print "Dashboards"
     print "--youcan.dance/crypto20 | href=http://youcan.dance/crypto20"
     print "--cryptodash1.firebaseapp | href=https://cryptodash1.firebaseapp.com/"
-print "---"
-print "Configuration"
-print "--Plugin Version: %s | href=%s" % (version,plugin_url)
-print "-----"
-print "--Set Token Amount | terminal=false refresh=true bash=\"%s\" param1=\"%s\" param2=\"%s\"" % (sys.executable,__file__,"--set-c20-token-amount")
-print "--Set Fiat Amount | terminal=false refresh=true bash=\"%s\" param1=\"%s\" param2=\"%s\"" % (sys.executable,__file__,"--set-fiat-amount")
-print "--Set Fiat Currency | terminal=false refresh=true bash=\"%s\" param1=\"%s\" param2=\"%s\"" % (sys.executable,__file__,"--set-fiat-currency")
-print "--Set Update URL | terminal=false refresh=true bash=\"%s\" param1=\"%s\" param2=\"%s\"" % (sys.executable,__file__,"--set-update-url")
-print "--Edit Config Manually | terminal=true bash=\"%s\" param1=\"%s\"" % ("open",config_file)
-print "-----"
-print "--Refresh Plugin | refresh=true"
-print "--Update Plugin | terminal=false refresh=true bash=\"%s\" param1=\"%s\" param2=\"%s\"" % (sys.executable,__file__,"--update")
+if config['show_configuration']:
+    print "---"
+    print "Configuration"
+    print "--Plugin Version: %s | href=%s" % (version,plugin_url)
+    print "-----"
+    print "--Set Token Amount | terminal=false refresh=true bash=\"%s\" param1=\"%s\" param2=\"%s\"" % (sys.executable,__file__,"--set-c20-token-amount")
+    print "--Set Fiat Amount | terminal=false refresh=true bash=\"%s\" param1=\"%s\" param2=\"%s\"" % (sys.executable,__file__,"--set-fiat-amount")
+    print "--Set Fiat Currency | terminal=false refresh=true bash=\"%s\" param1=\"%s\" param2=\"%s\"" % (sys.executable,__file__,"--set-fiat-currency")
+    #print "--Set Update URL | terminal=false refresh=true bash=\"%s\" param1=\"%s\" param2=\"%s\"" % (sys.executable,__file__,"--set-update-url")
+    print "--Edit Config Manually | terminal=true bash=\"%s\" param1=\"%s\"" % ("open",config_file)
+    print "-----"
+    print "--Refresh Plugin | refresh=true"
+    print "--Update Plugin | terminal=false refresh=true bash=\"%s\" param1=\"%s\" param2=\"%s\"" % (sys.executable,__file__,"--update")

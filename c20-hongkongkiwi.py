@@ -279,7 +279,9 @@ config_file = "%s/config.yml" % bitbarc20_dir
 default_config = {
             'c20_script': {
                 'number_of_c20': 1,
-                'fiat_currency': 'HK',
+                'show_coin_headers': 'yes',
+                'show_dashboards': 'yes',
+                'fiat_currency': 'AUD',
                 'fiat_spent_on_crypto': 1,
                 'c20_status_url': 'https://crypto20.com/status',
                 'hide_images_in_terminal': 'yes',
@@ -444,8 +446,11 @@ for holding in holdings:
         crypto_name,
         crypto_img)
 
-config_file = '/Users/andy/.bitbar_c20/config.yml'
-
+if config['show_dashboards']:
+    print "---"
+    print "Dashboards"
+    print "--youcan.dance/crypto20 | href=http://youcan.dance/crypto20"
+    print "--cryptodash1.firebaseapp | href=https://cryptodash1.firebaseapp.com/"
 print "---"
 print "Configuration"
 print "--Plugin Version: %s | href=%s" % (version,plugin_url)

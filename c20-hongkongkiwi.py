@@ -4,7 +4,7 @@
 # <bitbar.version>v0.1</bitbar.version>
 # <bitbar.author>Andy Savage</bitbar.author>
 # <bitbar.author.github>hongkongkiwi</bitbar.author.github>
-# <bitbar.desc>Plugin to show information from the Crypto20 Index Fund.</bitbar.desc>
+# <bitbar.desc>Plugin to show information from the Crypto20 Index Fund. This is hongkongkiwi's version.</bitbar.desc>
 # <bitbar.image>https://static.crypto20.com/images/icons/c20-alt-2-darkblue.png</bitbar.image>
 # <bitbar.dependencies>python</bitbar.dependencies>
 # <bitbar.abouturl>https://github.com/hongkongkiwi/bitbar-c20</bitbar.abouturl>
@@ -29,6 +29,18 @@ import json,argparse,urllib2,shutil,os,subprocess,re,sys,errno,time,ConfigParser
 from datetime import datetime,timedelta
 from urllib import urlopen
 from tempfile import NamedTemporaryFile
+
+def etherscan_get_tokens(crypto20_address, eth_address):
+    opener = urllib2.build_opener()
+    opener.addheaders = [('User-Agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36')]
+    url = "https://etherscan.io/token/%s?a=%s" % (crypto20_address,eth_address)
+    response = opener.open(url)
+    html = response.read()
+    c20_token_match = re.search("<td>Token Balance:\n?</td>\n?<td>\n?(.*) C20\n?</td>\n?</tr>", html)
+    if not c20_token_match:
+        return None
+    tokens = float(c20_token_match.group(1).replace(',',''))
+    return tokens
 
 # This function scans this script to pull the meta info from the comments
 def get_version():
@@ -158,13 +170,9 @@ def input_dialog(title,msg,default_text,icon,buttons,default_button):
     (out, err) = proc.communicate()
     button_pressed = out.split(', ')[0].split(':')[1]
     value_typed = out.split(', ')[1].split(':')[1].replace("\n",'')
-    try:
-        value_typed = float(value_typed)
-        button_pressed = int(buttons.index(button_pressed))
-    except ValueError:
+    button_pressed = int(buttons.index(button_pressed))
+    if button_pressed == 0:
         value_typed = 0
-        button_pressed = 0
-
     return button_pressed, value_typed
 
 def selection_box(title,msg,items,default_item,set_button_name):
@@ -227,8 +235,17 @@ def remote_update(url, local_file):
 def set_c20_token_amount(existing_amount):
     buttons = ["Cancal", "Set Tokens"]
     button_pressed, value = input_dialog("C20 Token Amount", "Please enter the amount of C20 tokens you own", existing_amount, "SidebarDropboxFolder", buttons, 1)
-    if button_pressed == 1:
-        set_config(config_file,'number_of_c20',value)
+    if button_pressed == 0:
+        exit()
+
+    # Check whether the return value is an ethereum address
+    if value[:2] == '0x' and len(value) == 42:
+        value = etherscan_get_tokens(config['crypto20_contract_address'], value)
+    try:
+        value = float(value)
+    except ValueError:
+        value = 0
+    set_config(config_file,'number_of_c20',value)
     exit()
 
 def set_update_url():
@@ -284,6 +301,7 @@ default_config = {
                 'show_configuration': 'yes',
                 'show_top_icon_color': 'yes',
                 'show_nav_usd': 'yes',
+                'show_nav_usd_seperator': 'yes',
                 'show_nav_btc': 'yes',
                 'show_nav_eth': 'yes',
                 'show_holdings_usd': 'yes',
@@ -300,7 +318,8 @@ default_config = {
                 'c20_status_url': 'https://crypto20.com/status',
                 'hide_images_in_terminal': 'yes',
                 'hide_url_in_terminal': 'yes',
-                'plugin_update_url': 'https://raw.githubusercontent.com/hongkongkiwi/bitbar-c20/master/c20_hongkongkiwi.py'
+                'plugin_update_url': 'https://raw.githubusercontent.com/hongkongkiwi/bitbar-c20/master/c20_hongkongkiwi.py',
+                'crypto20_contract_address': '0x26e75307fc0c021472feb8f727839531f112f317'
             }
         }
 
@@ -429,6 +448,8 @@ if config['show_nav_btc']:
     print 'NAV (BTC):\t{:,.8f} | color=#000'.format(net_asset_value_btc)
 if config['show_nav_eth']:
     print 'NAV (ETH):\t{:,.18f} | color=#000'.format(net_asset_value_eth)
+if config['show_nav_usd_seperator']:
+    print "---"
 if config['show_holdings_usd']:
     print 'Holdings:\t${:,} | href=https://crypto20.com/users/'.format(int(usd_value))
 if config['show_holdings_fiat']:

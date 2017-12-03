@@ -450,7 +450,7 @@ print "---"
 print "Configuration"
 print "--Plugin Version: %s | href=%s" % (version,plugin_url)
 print "-----"
-print "--Set Token Amount | terminal=false refresh=true bash=\"%s\" param1=\"%s\" param2=\"%s\"" % (sys.executable,__file__,"--set-token-amount")
+print "--Set Token Amount | terminal=false refresh=true bash=\"%s\" param1=\"%s\" param2=\"%s\"" % (sys.executable,__file__,"--set-c20-token-amount")
 print "--Set Fiat Amount | terminal=false refresh=true bash=\"%s\" param1=\"%s\" param2=\"%s\"" % (sys.executable,__file__,"--set-fiat-amount")
 print "--Set Fiat Currency | terminal=false refresh=true bash=\"%s\" param1=\"%s\" param2=\"%s\"" % (sys.executable,__file__,"--set-fiat-currency")
 print "--Set Update URL | terminal=false refresh=true bash=\"%s\" param1=\"%s\" param2=\"%s\"" % (sys.executable,__file__,"--set-update-url")

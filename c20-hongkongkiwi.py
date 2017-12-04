@@ -138,7 +138,7 @@ def make_dir_if_not_exist(dir):
 def is_non_zero_file(fpath):
     return os.path.isfile(fpath) and os.path.getsize(fpath) > 0
 
-def get_coin_icons(coins,icon_dir,icon_size=16,force=False):
+def get_coin_icons(coins,icon_dir,icon_size=32,force=False):
     make_dir_if_not_exist(icon_dir)
     output = {}
     for coin in coins:
@@ -149,13 +149,19 @@ def get_coin_icons(coins,icon_dir,icon_size=16,force=False):
             opener = urllib2.build_opener()
             # Fake our UserAgent so we can easily pull the tokens from the html
             opener.addheaders = [('User-Agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36')]
-            url = "https://images.weserv.nl/?url=www.livecoinwatch.com/images/icons32/%s.png&w=%d&h=%d" % (coin_name,icon_size,icon_size)
+            if icon_size <> 32:
+                url = "https://images.weserv.nl/?url=www.livecoinwatch.com/images/icons32/%s.png&w=%d&h=%d" % (coin_name,icon_size,icon_size)
+            else:
+                url = "https://www.livecoinwatch.com/images/icons32/%s.png" % (coin_name)
+
             try:
                 response = opener.open(url)
                 with open(output_filename, "w") as f:
                     data = response.read()
                     f.write(data)
-                #r.raise_for_status()
+                # We need to change the DPI of the image to support retina screens
+                proc = subprocess.Popen(["/usr/bin/sips",'-s','dpiHeight','144','-s','dpiWidth','144',output_filename], stdout=subprocess.PIPE, shell=False)
+                #(out, err) = proc.communicate()
             except urllib2.HTTPError:
                 print 'Could not download ' + coin_name
         else:

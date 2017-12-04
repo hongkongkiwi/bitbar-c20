@@ -360,9 +360,9 @@ def set_update_url():
 
 def set_fiat_amount(existing_amount):
     buttons = ["Cancal", "Set Fiat Amount"]
-    button_pressed, value = input_dialog("Fiat Spent Amount", "Please enter the amount of Fiat that you spent", existing_amount, "SidebarAirportExpress", buttons, 1)
+    button_pressed, value = input_dialog("Fiat Spent Amount", "Please enter the amount of Fiat that you spent", str(existing_amount), "SidebarAirportExpress", buttons, 1)
     if button_pressed == 1:
-        set_config(config_file,'fiat_spent_on_crypto',value)
+        set_config(config_file,'fiat_spent_on_crypto',float(value))
     exit()
 
 def set_fiat_currency(existing_currency):

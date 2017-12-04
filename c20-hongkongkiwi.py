@@ -24,7 +24,8 @@
 # you saved c20.py, such as your Downloads folder and you are done.
 #
 
-import json,argparse,urllib2,shutil,os,subprocess,re,sys,errno,time,ConfigParser,yaml,base64
+import json,argparse,urllib2,shutil,os,subprocess
+import re,sys,errno,time,ConfigParser,yaml,base64,string
 
 from datetime import datetime,timedelta
 from urllib import urlopen
@@ -421,48 +422,48 @@ eth_result = json.loads(urlopen('https://api.coinmarketcap.com/v1/ticker/ethereu
 btc_result = json.loads(urlopen('https://api.coinmarketcap.com/v1/ticker/bitcoin/?convert=USD').read())
 
 # parse out price and put here
-symbol_price = {
-};
+symbol_price = {}
 
 # loop through prices rather than call api more than once
 for c in top_25_result:
-    symbol_price[c['id']] = float(c['price_usd'])
+    symbol_price[c['symbol']] = float(c['price_usd'])
 
 holdings = []
 for holding in status_result['holdings']:
     holdings.append(holding['name'])
 
 symbol_image_map = get_coin_icons(holdings,icons_dir)
+# We need to manually add in the C20 icon since it's not on livecoinwatch
 symbol_image_map['C20'] = 'iVBORw0KGgoAAAANSUhEUgAAACAAAAAlCAYAAAAjt+tHAAAAAXNSR0IArs4c6QAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAACXBIWXMAABYlAAAWJQFJUiTwAAADRGlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iWE1QIENvcmUgNS40LjAiPgogICA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPgogICAgICA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIgogICAgICAgICAgICB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iCiAgICAgICAgICAgIHhtbG5zOnRpZmY9Imh0dHA6Ly9ucy5hZG9iZS5jb20vdGlmZi8xLjAvIgogICAgICAgICAgICB4bWxuczpleGlmPSJodHRwOi8vbnMuYWRvYmUuY29tL2V4aWYvMS4wLyI+CiAgICAgICAgIDx4bXA6TW9kaWZ5RGF0ZT4yMDE3LTExLTIwVDA3OjExOjYzPC94bXA6TW9kaWZ5RGF0ZT4KICAgICAgICAgPHhtcDpDcmVhdG9yVG9vbD5QaXhlbG1hdG9yIDMuNzwveG1wOkNyZWF0b3JUb29sPgogICAgICAgICA8dGlmZjpPcmllbnRhdGlvbj4xPC90aWZmOk9yaWVudGF0aW9uPgogICAgICAgICA8dGlmZjpSZXNvbHV0aW9uVW5pdD4yPC90aWZmOlJlc29sdXRpb25Vbml0PgogICAgICAgICA8dGlmZjpDb21wcmVzc2lvbj41PC90aWZmOkNvbXByZXNzaW9uPgogICAgICAgICA8ZXhpZjpQaXhlbFhEaW1lbnNpb24+Mjg8L2V4aWY6UGl4ZWxYRGltZW5zaW9uPgogICAgICAgICA8ZXhpZjpDb2xvclNwYWNlPjE8L2V4aWY6Q29sb3JTcGFjZT4KICAgICAgICAgPGV4aWY6UGl4ZWxZRGltZW5zaW9uPjMyPC9leGlmOlBpeGVsWURpbWVuc2lv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'
 
 # symbol to name map
-symbol_path_map = {
-    'BTC': 'bitcoin',
-    'ETH': 'ethereum',
-    'BCH': 'bitcoin-cash',
-    'XRP': 'ripple',
-    'DASH': 'dash',
-    'LTC': 'litecoin',
-    'MIOTA': 'iota',
-    'XMR': 'monero',
-    'NEO': 'neo',
-    'XEM': 'nem',
-    'ETC': 'ethereum-classic',
-    'LSK': 'lisk',
-    'QTUM': 'qtum',
-    'EOS': 'eos',
-    'ZEC': 'zcash',
-    'OMG': 'omisego',
-    'ADA': 'cardano',
-    'HSR': 'hshare',
-    'XLM': 'stellar',
-    'WAVES': 'waves',
-    'PPT': 'populous',
-    'STRAT': 'stratis',
-    'BTS': 'bitshares',
-    'ARK': 'ark',
-    'BTG': 'bitcoin-gold'
-}
+# symbol_path_map = {
+#     'BTC': 'bitcoin',
+#     'ETH': 'ethereum',
+#     'BCH': 'bitcoin-cash',
+#     'XRP': 'ripple',
+#     'DASH': 'dash',
+#     'LTC': 'litecoin',
+#     'MIOTA': 'iota',
+#     'XMR': 'monero',
+#     'NEO': 'neo',
+#     'XEM': 'nem',
+#     'ETC': 'ethereum-classic',
+#     'LSK': 'lisk',
+#     'QTUM': 'qtum',
+#     'EOS': 'eos',
+#     'ZEC': 'zcash',
+#     'OMG': 'omisego',
+#     'ADA': 'cardano',
+#     'HSR': 'hshare',
+#     'XLM': 'stellar',
+#     'WAVES': 'waves',
+#     'PPT': 'populous',
+#     'STRAT': 'stratis',
+#     'BTS': 'bitshares',
+#     'ARK': 'ark',
+#     'BTG': 'bitcoin-gold'
+# }
 
 # add on top of current nav
 net_asset_value = float(status_result['nav_per_token'])
@@ -509,25 +510,26 @@ if config['show_fund_breakdown']:
     # separator bitbar recognizes and puts everything under it into a menu
     print '---'
     if config['show_coin_headers']:
-        print "Name\t\t%\t\tPrice\t\tAmount"
+        print "Name\t\t%\t\tAmount\t\tCoin Price"
 
     # print holdings
     holdings = status_result['holdings'];
     for holding in holdings:
-        crypto_name = holding['name']
+        crypto_name = holding['name'].upper().strip()
+        crypto_full_name = holding['full_name'].replace(' ','').lower()
         crypto_value = float(holding['value'])
         crypto_percentage = crypto_value / float(status_result['usd_value']) * 100
         c20_value = holding['value']
-        crypto_path = symbol_path_map[crypto_name]
+        #crypto_path = symbol_path_map[crypto_name]
         crypto_img = symbol_image_map[crypto_name]
-        crypto_price = float(symbol_price[crypto_path])
+        crypto_price = float(symbol_price[crypto_name])
 
-        print '{:s} \t{:.2f}%\t${:,}\t${:,.2f} | href=https://livecoinwatch.com/coins/{:s} image={}'.format(
+        print '{:s} \t{:.2f}%\t${:,}\t${:,.2f} | href=https://coinmarketcap.com/currencies/{} image={}'.format(
             crypto_name,
             crypto_percentage,
             c20_value,
             crypto_price,
-            crypto_name,
+            crypto_full_name,
             crypto_img)
 
 if config['show_dashboards']:

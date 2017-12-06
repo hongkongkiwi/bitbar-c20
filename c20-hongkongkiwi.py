@@ -56,7 +56,12 @@ default_config = {
                 'show_market_cap': 'yes',
                 'show_holdings_value_in_fiat': 'no',
                 'show_only_my_c20_holdings': 'no',
-                'additional_btg': 0,
+                'show_update_button': 'yes',
+                'manually_added_holdings': [{
+                    'name': 'Bitcoin Gold',
+                    'symbol': 'BTG',
+                    'amount': 1000
+                }],
                 'fiat_currency': 'USD',
                 'fiat_currency_symbol': '$',
                 'fiat_spent_on_crypto': 1,
@@ -311,7 +316,8 @@ def customize_view_options():
         'Show C20 Quantity Item': 'show_c20_quantity',
         'Show Market Cap Item': 'show_market_cap',
         'Show my Fund Values Only': 'show_only_my_c20_holdings',
-        'Show Holdings Value in Fiat Only': 'show_holdings_value_in_fiat'
+        'Show Holdings Value in Fiat Only': 'show_holdings_value_in_fiat',
+        'Show Update Button': 'show_update_button'
     }
     selected_items = []
     for key, value in items.iteritems():
@@ -477,7 +483,7 @@ elif args.donate:
         print "Thank you for considering donation!"
         print "Ethereum or C20: %s" % donation_address
     write_to_clipboard(donation_address)
-    ok_dialog("Thank you for donating!","Thank you so much for appreciating my hard work.\n\nMy Ethereum address has been copied to your clipboard or you can copy from here: %s" % donation_address,"ToolbarFavoritesIcon")
+    ok_dialog("Thank you for donating!","Thank you so much for appreciating my hard work.\n\nMy Ethereum address has been copied to your clipboard or you can copy from here:\n%s\n\nPlease let me know if you want any more awesome features!\n- Hongkongkiwi" % donation_address,"ToolbarFavoritesIcon")
     exit()
 elif args.customize_view:
     view_options = customize_view_options()
@@ -553,12 +559,12 @@ gain = (fiat_value - fiat_spent_on_crypto) / fiat_spent_on_crypto * 100
 if config['show_nav_usd']:
     print 'NAV:\t\t${:.4f} | color=#000'.format(net_asset_value)
 if config['show_nav_btc']:
-    print 'NAV (BTC):\t{:,.8f} | color=#000 img={}'.format(net_asset_value_btc, symbol_image_map['BTC'])
+    print 'NAV (BTC):\t{:,.8f} | color=#000 image={}'.format(net_asset_value_btc, symbol_image_map['BTC'])
 if config['show_nav_eth']:
-    print 'NAV (ETH):\t{:,.18f} | color=#000'.format(net_asset_value_eth, symbol_image_map['ETH'])
+    print 'NAV (ETH):\t{:,.18f} | color=#000 image={}'.format(net_asset_value_eth, symbol_image_map['ETH'])
 if config['show_nav_usd_seperator']:
     print "---"
-if config['show_holdings_usd']:
+if config['show_holdings_usd'] and not config['show_holdings_value_in_fiat']:
     print 'Holdings:\t${:,} | href=https://crypto20.com/users/'.format(int(usd_value))
 if config['show_holdings_fiat']:
     print 'Holdings:\t${:,} {} | href=https://crypto20.com/users/'.format(int(fiat_value),str(config['fiat_currency']))
@@ -575,7 +581,7 @@ if config['show_c20_quantity']:
 
 if config['show_market_cap']:
     # print total crypto market cap
-    print 'Market Cap:\t${:,} | href=https://livecoinwatch.com'.format(int(crypto_global_result['total_market_cap_usd']))
+    print 'Market Cap:\t${:,} | href=https://livecoinwatch.com image={}'.format(int(crypto_global_result['total_market_cap_usd']),symbol_image_map['Market'])
 
 if config['show_fund_breakdown']:
     # separator bitbar recognizes and puts everything under it into a menu
@@ -640,4 +646,5 @@ if config['show_configuration']:
     print "--Edit Config Manually | terminal=false bash=\"%s\" param1=\"%s\"" % ("/usr/bin/open",config_file)
     print "-----"
     print "--Refresh Plugin | refresh=true"
-    print "--Update Plugin | terminal=false refresh=true bash=\"%s\" param1=\"%s\" param2=\"%s\"" % (sys.executable,__file__,"--update")
+    if config['show_update_button']:
+        print "--Update Plugin | terminal=false refresh=true bash=\"%s\" param1=\"%s\" param2=\"%s\"" % (sys.executable,__file__,"--update")

@@ -54,9 +54,10 @@ default_config = {
                 'show_fund_breakdown': 'yes',
                 'show_c20_quantity': 'yes',
                 'show_market_cap': 'yes',
-                'show_holdings_value_in_fiat': 'yes',
+                'show_holdings_value_in_fiat': 'no',
+                'show_only_my_c20_holdings': 'no',
                 'additional_btg': 0,
-                'fiat_currency': 'AUD',
+                'fiat_currency': 'USD',
                 'fiat_currency_symbol': '$',
                 'fiat_spent_on_crypto': 1,
                 'c20_status_url': 'https://crypto20.com/status',
@@ -295,21 +296,23 @@ def selection_box_multiple(title,msg,items,default_items,set_button_name):
 
 def customize_view_options():
     items = {
-        'Coin Headers': 'show_coin_headers',
-        'Dashboards Menu': 'show_dashboards',
-        'Configuration Menu': 'show_configuration',
-        'NAV (USD)': 'show_nav_usd',
-        'NAV (USD) Seperator': 'show_nav_usd_seperator',
-        'NAV (BTC)': 'show_nav_btc',
-        'NAV (ETH)': 'show_nav_eth',
-        'Holdings (USD)': 'show_holdings_usd',
-        'Holdings (Fiat)': 'show_holdings_fiat',
-        'Profit': 'show_profit',
-        'Gain': 'show_gain',
-        'Fund': 'show_fund',
-        'Fund Coin Breakdown': 'show_fund_breakdown',
-        'C20 Quantity': 'show_c20_quantity',
-        'Market Cap': 'show_market_cap'
+        'Show Coin Headers': 'show_coin_headers',
+        'Show ashboards Menu': 'show_dashboards',
+        'Show Configuration Menu': 'show_configuration',
+        'Show NAV (USD) Item': 'show_nav_usd',
+        'Show NAV (USD) Seperator': 'show_nav_usd_seperator',
+        'Show NAV (BTC) Item': 'show_nav_btc',
+        'Show NAV (ETH) Item': 'show_nav_eth',
+        'Show Holdings (USD) Item': 'show_holdings_usd',
+        'Show Holdings (Fiat) Item': 'show_holdings_fiat',
+        'Show Profit Item': 'show_profit',
+        'Show Gain Item': 'show_gain',
+        'Show Fund Item': 'show_fund',
+        'Show Fund Coin Breakdown': 'show_fund_breakdown',
+        'Show C20 Quantity Item': 'show_c20_quantity',
+        'Show Market Cap Item': 'show_market_cap',
+        'Show my Fund Values Only': 'show_only_my_c20_holdings',
+        'Show Holdings Value in Fiat Only': 'show_holdings_value_in_fiat'
     }
     selected_items = []
     for key, value in items.iteritems():
@@ -523,12 +526,15 @@ symbol_image_map['C20'] = 'iVBORw0KGgoAAAANSUhEUgAAACAAAAAlCAYAAAAjt+tHAAAAAXNSR
 symbol_image_map['Golden_C20'] = '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'
 symbol_image_map['Beer'] = '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'
 symbol_image_map['Coffee'] = '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'
+symbol_image_map['Market'] = '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'
+symbol_image_map['Money'] = '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'
 
 # add on top of current nav
 net_asset_value = float(status_result['nav_per_token'])
 usd_value = net_asset_value * number_of_c20
 net_asset_value_eth = net_asset_value / float(eth_result[0]['price_usd'])
 net_asset_value_btc = net_asset_value / float(btc_result[0]['price_usd'])
+total_fund_c20 = int(status_result['presale'])
 
 # TODO: Implement Golden C20 icon function
 golden_c20 = False
@@ -548,9 +554,9 @@ gain = (fiat_value - fiat_spent_on_crypto) / fiat_spent_on_crypto * 100
 if config['show_nav_usd']:
     print 'NAV:\t\t${:.4f} | color=#000'.format(net_asset_value)
 if config['show_nav_btc']:
-    print 'NAV (BTC):\t{:,.8f} | color=#000'.format(net_asset_value_btc)
+    print 'NAV (BTC):\t{:,.8f} | color=#000 img={}'.format(net_asset_value_btc, symbol_image_map['BTC'])
 if config['show_nav_eth']:
-    print 'NAV (ETH):\t{:,.18f} | color=#000'.format(net_asset_value_eth)
+    print 'NAV (ETH):\t{:,.18f} | color=#000'.format(net_asset_value_eth, symbol_image_map['ETH'])
 if config['show_nav_usd_seperator']:
     print "---"
 if config['show_holdings_usd']:
@@ -562,7 +568,7 @@ if config['show_profit']:
 if config['show_gain']:
     print 'Gain:\t\t{:,.3f}% | href=https://percentagecalculator.net/'.format(gain)
 if config['show_fund']:
-    print 'Fund:\t\t${:,} | href=https://crypto20.com/portal/insights/'.format(int(status_result['usd_value']))
+    print 'Fund:\t\t${:,} | href=https://crypto20.com/portal/insights/ image={}'.format(int(status_result['usd_value']), symbol_image_map['Money'])
 
 if config['show_c20_quantity']:
     # print number of c20 you have
@@ -578,6 +584,8 @@ if config['show_fund_breakdown']:
     if config['show_coin_headers']:
         print "Name\t\t%\t\tAmount\t\tCoin Price"
 
+    my_overall_fund_percentage = float(number_of_c20 / total_fund_c20)
+
     # print holdings
     holdings = status_result['holdings'];
     for holding in holdings:
@@ -590,6 +598,11 @@ if config['show_fund_breakdown']:
             c20_value = int(holding['amount'] * crypto_price)
         else:
             c20_value = int(holding['value'])
+
+        if config['show_only_my_c20_holdings']:
+            c20_value = int(c20_value * my_overall_fund_percentage)
+            #print my_overall_fund_percentage
+
         #crypto_path = symbol_path_map[crypto_name]
         crypto_img = symbol_image_map[crypto_name]
 

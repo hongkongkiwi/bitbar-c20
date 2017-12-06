@@ -7,12 +7,6 @@ Crypto20 Bitbar Plugin
 
 Screenshots
 ---
-The only difference is one has the nav at the top
-
-### c20.py
-![kiva](https://raw.githubusercontent.com/cchen408/bitbar-c20/master/screenshots/kiva.png)
 
 ### c20-chris.py
 ![chris](https://raw.githubusercontent.com/cchen408/bitbar-c20/master/screenshots/chris.png)
-
-

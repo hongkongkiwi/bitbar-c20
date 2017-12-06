@@ -297,8 +297,7 @@ def selection_box_multiple(title,msg,items,default_items,set_button_name):
 def customize_view_options():
     items = {
         'Show Coin Headers': 'show_coin_headers',
-        'Show ashboards Menu': 'show_dashboards',
-        'Show Configuration Menu': 'show_configuration',
+        'Show Dashboards Menu': 'show_dashboards',
         'Show NAV (USD) Item': 'show_nav_usd',
         'Show NAV (USD) Seperator': 'show_nav_usd_seperator',
         'Show NAV (BTC) Item': 'show_nav_btc',

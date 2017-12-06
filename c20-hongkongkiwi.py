@@ -24,16 +24,19 @@
 # you saved c20.py, such as your Downloads folder and you are done.
 #
 
-import json,argparse,urllib2,shutil,os,subprocess,random
-import re,sys,errno,time,ConfigParser,yaml,base64,string
+import json,argparse,urllib2,shutil,os,subprocess,random,platform
+import re,sys,errno,time,ConfigParser,base64,string
+import yaml
 
 from datetime import datetime,timedelta
 from urllib import urlopen
 from tempfile import NamedTemporaryFile
 
 bitbarc20_dir = "%s/.bitbar_c20" % os.environ.get('HOME')
-icons_dir = "%s/cache/icons" % bitbarc20_dir
+cache_dir = "%s/cache" % bitbarc20_dir
+icons_dir = "%s/icons" % cache_dir
 config_file = "%s/config.yml" % bitbarc20_dir
+json_filename = "%s/c20_historic.json" % cache_dir
 
 default_config = {
             'c20_script': {
@@ -145,6 +148,34 @@ def make_dir_if_not_exist(dir):
 
 def is_non_zero_file(fpath):
     return os.path.isfile(fpath) and os.path.getsize(fpath) > 0
+
+def get_c20_historic_json(output_filename,sync_time_mins):
+    download = False
+    # Check if historic JSON exists
+    if is_non_zero_file(output_filename):
+        # Check last pull date
+        now = time.time()
+        file_mod_time = datetime.fromtimestamp(os.stat(output_filename).st_mtime)  # This is a datetime.datetime object!
+        now = datetime.today()
+        max_delay = timedelta(minutes=sync_time_mins)
+        if now-file_mod_time > max_delay:
+            download = True
+    else:
+        # File does not exist, download
+        download = True
+    if download:
+        url = 'https://crypto20.com/api/v1/status/historic'
+        opener = urllib2.build_opener()
+        # Fake our UserAgent so we can easily pull the tokens from the html
+        opener.addheaders = [('User-Agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36')]
+        try:
+            response = opener.open(url)
+            j = json.loads(response.read())
+            if len(j) > 0:
+                with open(output_filename, "w") as f:
+                    f.write(json.dumps(j[-1]))
+        except urllib2.HTTPError:
+            print 'Could not download ' + url
 
 def get_coin_icons(coins,icon_dir,icon_size=32,force=False):
     make_dir_if_not_exist(icon_dir)
@@ -455,6 +486,7 @@ parser.add_argument('--quiet', '-q', action='store_true', default=False)
 parser.add_argument('--version', action='version', version="%s %s" % (title,version))
 parser.add_argument('--test', '-t', action='store_true', default=False)
 parser.add_argument('--donate', '-d', action='store_true', default=False)
+parser.add_argument('--download-historic-json', action='store_true', default=False)
 args = parser.parse_args()
 
 config = get_config(config_file,default_config)['c20_script']
@@ -489,7 +521,17 @@ elif args.customize_view:
     view_options = customize_view_options()
     print view_options
     exit()
+elif args.download_historic_json:
+    get_c20_historic_json(json_filename,1440)
+    exit()
 
+# Download the historic json in the background
+subprocess.Popen([__file__,"--download-historic-json"])
+
+historic_status = {}
+if is_non_zero_file(json_filename):
+    with open(json_filename, "r") as f:
+        historic_status = json.loads(f.read())
 
 # change this to the number of C20 tokens that you own
 number_of_c20 = config['number_of_c20']
@@ -556,8 +598,15 @@ print '---'
 fiat_value = fiat_result['rates'][config['fiat_currency']] * usd_value
 fiat_profit = fiat_value - fiat_spent_on_crypto
 gain = (fiat_value - fiat_spent_on_crypto) / fiat_spent_on_crypto * 100
+# http://www.color-hex.com/color-names.html
 if config['show_nav_usd']:
-    print 'NAV:\t\t${:.4f} | color=#000'.format(net_asset_value)
+    if (net_asset_value > float(historic_status['nav'])):
+        percentage = float(net_asset_value / float(historic_status['nav']))
+        print 'NAV:\t\t${:.4f}\tUP {:.2f}% | color=#32cd32'.format(net_asset_value, percentage)
+    elif (net_asset_value < float(historic_status['nav'])):
+        print 'NAV:\t\t${:.4f} | color=#000'.format(net_asset_value)
+    else:
+        print 'NAV:\t\t${:.4f} - | color=#000'.format(net_asset_value)
 if config['show_nav_btc']:
     print 'NAV (BTC):\t{:,.8f} | color=#000 image={}'.format(net_asset_value_btc, symbol_image_map['BTC'])
 if config['show_nav_eth']:

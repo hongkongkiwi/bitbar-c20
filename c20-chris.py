@@ -18,10 +18,40 @@
 # your holdings are worth.
 
 import json
+import time
 from urllib import urlopen
 
 # change this to the number of C20 tokens that you own
 number_of_c20 = 0
+
+# set to your local currency (if other than USD) or leave empty
+# possbile values: AUD,BGN,BRL,CAD,CHF,CNY,CZK,DKK,EUR,GBP,HKD,HRK,HUF,IDR,ILS,
+#                  INR,JPY,KRW,MXN,MYR,NOK,NZD,PHP,PLN,RON,RUB,SEK,SGD,THB,TRY,ZAR
+local_currency = ''
+
+ratesFileName = '/tmp/bitbar-c20-exchange-rates'
+
+
+# fetch currency exchange rates and cache them in a file
+def fetch_exchange_rates():
+    rates = json.loads(urlopen('https://api.fixer.io/latest?base=USD').read())
+    rates['timestamp'] = time.time()
+    ratesFile = open(ratesFileName, 'w')
+    ratesFile.write(json.dumps(rates))
+    ratesFile.close()
+    return rates
+
+
+if local_currency:
+    try:
+        ratesFile = open(ratesFileName, 'r')
+        exchange_rates = json.load(ratesFile)
+        ratesFile.close()
+        if (time.time() - exchange_rates['timestamp']) > 3600:
+            # older than an hour -> fetch again
+            exchange_rates = fetch_exchange_rates()
+    except IOError:
+        exchange_rates = fetch_exchange_rates()
 
 result = json.loads(urlopen('https://crypto20.com/status').read())
 btg_result = json.loads(urlopen('https://api.coinmarketcap.com/v1/ticker/bitcoin-gold/').read())
@@ -143,8 +173,11 @@ print 'NAV:\t{:.8f} BTC | href=https://crypto20.com/en/portal/performance/ image
 print '---'
 
 # print number of c20 you have and their value
-print 'My Tokens:\t\t{:,.4f} | href=https://crypto20.com/users/ image={}'.format(number_of_c20, symbol_image_map['C20'])
-print 'My Value:\t\t${:,.2f} | href=https://crypto20.com/users/ image={}'.format(usd_value, symbol_image_map['C20'])
+print 'My Tokens:\t\t\t{:,.4f} | href=https://crypto20.com/users/ image={}'.format(number_of_c20, symbol_image_map['C20'])
+print 'My Value:\t\t\t${:,.2f} | href=https://crypto20.com/users/ image={}'.format(usd_value, symbol_image_map['C20'])
+if local_currency:
+    local_value = usd_value * exchange_rates['rates'][local_currency]
+    print 'My Value (Local):\t\t{} {:,.2f} | href=https://crypto20.com/users/ image={}'.format(local_currency, local_value, symbol_image_map['C20'])
 print '---'
 
 # tokens issues
@@ -173,7 +206,10 @@ for holding in holdings:
     c20_value = holding['value']
     crypto_name = symbol_path_map[crypto_symbol]
     crypto_img = symbol_image_map[crypto_symbol]
-    crypto_price = float(symbol_price[crypto_name])
+    try:
+        crypto_price = float(symbol_price[crypto_name])
+    except KeyError:
+        crypto_price = 0
 
     print '{:<6s} \t{:,.2f}%\t${:<10,}\t${:<10,.2f}\t{:,.2f} | href=https://coinmarketcap.com/currencies/{:s} image={}'.format(
         crypto_symbol,
